@@ -17,6 +17,8 @@ class ResultProcessor:
 
     def __init__(self):
         """初始化结果处理器"""
+        from .formatters import JSONFormatter, CSVFormatter, ChartFormatter, TableFormatter
+
         self.formatters = {
             'json': JSONFormatter(),
             'csv': CSVFormatter(),

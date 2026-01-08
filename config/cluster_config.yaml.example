@@ -1,0 +1,74 @@
+# BigData Agent 集群连接配置示例
+# 复制此文件为 cluster_config.yaml 并修改为实际配置
+
+nodes:
+  node1:
+    hostname: "your-node1-hostname"
+    ip_address: "192.168.1.101"
+    port: 22
+    username: "hadoop"
+    # password: "your_password"  # 生产环境不推荐使用密码
+    key_file: "~/.ssh/id_rsa"  # SSH私钥路径
+    # key_passphrase: "your_key_passphrase"  # 如果私钥有密码
+
+    services:
+      ssh: 22
+      hdfs_namenode: 9870
+      yarn_resourcemanager: 8088
+      spark_master: 7077
+      hive_metastore: 9083
+
+    roles:
+      - "namenode"
+      - "resourcemanager"
+      - "spark_master"
+      - "hive_server"
+
+    resources:
+      memory_gb: 16
+      cpu_cores: 8
+      disk_gb: 500
+
+cluster:
+  name: "your-hadoop-cluster"
+  version: "3.3.4"
+  type: "hadoop"
+
+network:
+  domain: "your-cluster.local"
+  subnet: "192.168.1.0/24"
+
+execution_engines:
+  spark:
+    master_url: "spark://node1:7077"
+    deploy_mode: "cluster"
+    app_name: "BigDataAgent"
+
+    default_resources:
+      executor_memory: "2g"
+      executor_cores: "2"
+      num_executors: "2"
+
+    queue: "default"
+
+  hive:
+    metastore_uri: "thrift://node1:9083"
+    database: "default"
+
+data_sources:
+  hdfs:
+    namenode_uri: "hdfs://node1:9000"
+    user: "hadoop"
+
+  local:
+    base_path: "/data"
+    temp_path: "/tmp/bigdata_agent"
+
+monitoring:
+  metrics:
+    enabled: true
+    interval_seconds: 60
+
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

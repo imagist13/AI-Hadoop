@@ -5,10 +5,21 @@
 
 import json
 from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime, timedelta
 
-from ..llms.siliconflow_llm import SiliconFlowLLM
+import sys
+import os
+import logging
+from pathlib import Path
+
+# 添加项目根目录到路径
+project_root = Path(__file__).parent.parent.parent
+llms_path = project_root / "llms"
+if str(llms_path) not in sys.path:
+    sys.path.insert(0, str(llms_path))
+
+from siliconflow_llm import SiliconFlowLLM
 from .intent_recognizer import IntentRecognizer, IntentResult
 
 
@@ -64,7 +75,7 @@ class AnalyzedQuery:
     conditions: List[QueryCondition]
     aggregations: Optional[AggregationConfig] = None
     time_range: Optional[TimeRange] = None
-    output_config: OutputConfig = OutputConfig()
+    output_config: OutputConfig = field(default_factory=lambda: OutputConfig())
     description: str = ""
     confidence_score: float = 0.0
 
@@ -74,8 +85,15 @@ class QueryAnalyzer:
 
     def __init__(self):
         """初始化查询分析器"""
+        self.logger = logging.getLogger(__name__)
         self.intent_recognizer = IntentRecognizer()
-        self.llm = SiliconFlowLLM()
+
+        try:
+            self.llm = SiliconFlowLLM()
+            self.logger.info("LLM初始化成功")
+        except Exception as e:
+            self.logger.warning(f"LLM初始化失败: {e}，将使用规则-based方法")
+            self.llm = None
 
         # 预定义的数据源映射（可以从配置文件加载）
         self.data_source_mapping = {
@@ -95,8 +113,12 @@ class QueryAnalyzer:
         Returns:
             AnalyzedQuery: 解析后的结构化查询
         """
+        self.logger.info(f"开始分析查询: '{query}'")
+
         # 首先进行意图识别
         intent_result = self.intent_recognizer.recognize_intent(query)
+
+        self.logger.debug(f"意图识别结果: {intent_result.intent.value} (置信度: {intent_result.confidence:.2f})")
 
         # 使用LLM进行深度分析
         llm_analysis = self._llm_deep_analysis(query, intent_result)

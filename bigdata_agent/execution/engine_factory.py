@@ -59,23 +59,8 @@ class EngineFactory:
         pass
 
 
-# 在模块导入时注册引擎
-def _register_engines():
-    """注册所有可用的引擎"""
-    try:
-        from .spark_engine import SparkEngine
-        EngineFactory.register_engine('spark', SparkEngine)
-    except ImportError:
-        pass
-
-    try:
-        from .hive_engine import HiveEngine
-        EngineFactory.register_engine('hive', HiveEngine)
-    except ImportError:
-        pass
-
-# 执行注册
-_register_engines()
+class EngineFactory:
+    _engines = {}
 
     @classmethod
     def register_engine(cls, engine_type: str, engine_class):

@@ -3,6 +3,7 @@
 识别用户查询的意图类型
 """
 
+import logging
 from enum import Enum
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
@@ -35,6 +36,8 @@ class IntentRecognizer:
     """意图识别器类"""
 
     def __init__(self):
+        """初始化意图识别器"""
+        self.logger = logging.getLogger(__name__)
         """初始化意图识别器"""
         # 意图关键词映射
         self.intent_keywords = {
@@ -88,6 +91,7 @@ class IntentRecognizer:
         Returns:
             IntentResult: 意图识别结果
         """
+        self.logger.debug(f"开始识别意图: '{query}'")
         query_lower = query.lower()
 
         # 计算每个意图的匹配分数
@@ -107,9 +111,13 @@ class IntentRecognizer:
         if confidence == 0:
             best_intent = QueryIntent.STATISTICS
             confidence = 0.5
+            self.logger.debug("未匹配到关键词，使用默认统计意图")
 
         # 提取参数
         parameters = self._extract_parameters(query)
+
+        self.logger.info(f"意图识别完成: {best_intent.value} (置信度: {confidence:.2f})")
+        self.logger.debug(f"意图得分详情: {intent_scores}")
 
         return IntentResult(
             intent=best_intent,

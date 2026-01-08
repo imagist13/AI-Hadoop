@@ -1,0 +1,34 @@
+# Core dependencies
+fastapi>=0.104.1
+pydantic>=2.5.0
+pyspark>=3.5.0
+sqlalchemy>=2.0.23
+pyyaml>=6.0.1
+
+# AI/ML dependencies
+langchain>=0.1.0
+openai>=1.0.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# HTTP and web
+requests>=2.31.0
+uvicorn>=0.24.0
+
+# Database drivers (optional)
+# PyHive for Hive connection
+# pyhive[hive]>=0.7.0
+
+# ClickHouse driver
+# clickhouse-driver>=0.2.6
+
+# Development dependencies
+pytest>=7.4.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
+
+# Logging and monitoring
+colorlog>=6.7.0

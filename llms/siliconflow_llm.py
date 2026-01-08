@@ -7,7 +7,7 @@ import os
 from typing import Optional, Dict, Any
 from openai import OpenAI
 from langchain_openai import ChatOpenAI
-from .base import BaseLLM
+from bigdata_agent.core.base_llm import BaseLLM
 
 
 class SiliconFlowLLM(BaseLLM):
@@ -22,6 +22,10 @@ class SiliconFlowLLM(BaseLLM):
             base_url=self._get_base_url()
         )
         self.default_model = model_name or self._get_model_name()
+
+    def _get_default_model(self) -> str:
+        """获取默认模型名称"""
+        return self._get_model_name()
 
     def _get_from_settings(self, key: str, default: Optional[str] = None) -> Optional[str]:
         """从配置文件获取设置"""

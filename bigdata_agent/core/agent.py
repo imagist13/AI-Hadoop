@@ -4,6 +4,7 @@
 """
 
 import time
+import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
@@ -36,8 +37,20 @@ class BigDataAgent:
         # 连接状态
         self.connected = False
 
+        self.logger = logging.getLogger(__name__)
+        self.business_logger = logging.getLogger("business")
+
+        # 确保business logger有处理器
+        if not self.business_logger.handlers:
+            from config.logging_config import setup_logging
+            # 如果还没有设置日志，先设置一下
+            if not logging.getLogger().handlers:
+                setup_logging()
+
         print("🤖 BigData Agent初始化完成")
         print(f"   执行引擎: {engine_type}")
+
+        self.logger.info(f"BigData Agent初始化完成，执行引擎: {engine_type}")
 
     def connect(self) -> bool:
         """
@@ -91,13 +104,24 @@ class BigDataAgent:
         start_time = time.time()
 
         try:
+            # 记录用户查询
+            self.business_logger.info(f"用户查询: '{user_query}'")
+
             # 1. NLP分析查询
             print(f"🔍 分析查询: {user_query}")
+            self.logger.debug(f"开始分析查询: {user_query}")
+
             analyzed_query = self.query_analyzer.analyze_query(user_query)
 
-            print(f"   识别意图: {analyzed_query.intent_result.intent.value}")
+            intent_result = analyzed_query.intent_result
+            print(f"   识别意图: {intent_result.intent.value}")
             print(f"   数据源: {analyzed_query.data_source.table}")
             print(".2f")
+
+            # 记录意图识别结果
+            self.business_logger.info(
+                f"意图识别: '{user_query}' -> {intent_result.intent.value} (置信度: {intent_result.confidence:.2f})"
+            )
 
             # 2. 构建执行任务
             print("🏗️ 构建执行任务")
@@ -111,12 +135,25 @@ class BigDataAgent:
             print(f"   任务ID: {task.task_config.task_id}")
             print(f"   SQL: {task.sql_query[:100]}...")
 
+            # 记录SQL生成
+            self.business_logger.info(f"生成SQL ({self.engine_type}): {task.sql_query[:100]}...")
+
             # 3. 执行查询
             print("⚡ 执行查询")
+            execution_start = time.time()
             execution_result = self.execution_engine.execute_query(task.sql_query, task)
-
-            execution_time = time.time() - start_time
+            execution_time = time.time() - execution_start
             print(".2f")
+
+            # 记录执行结果
+            if execution_result.get('success'):
+                self.business_logger.info(
+                    f"任务执行完成: {task.task_config.task_id} | 耗时: {execution_time:.3f}s | 返回行数: {execution_result.get('row_count', 0)}"
+                )
+            else:
+                self.business_logger.error(
+                    f"任务执行失败: {task.task_config.task_id} | 耗时: {execution_time:.3f}s | 错误: {execution_result.get('error', '未知错误')}"
+                )
             # 4. 处理结果
             print("📊 处理结果")
             processed_result = self.result_processor.process_result(
@@ -135,7 +172,8 @@ class BigDataAgent:
             }
 
             if processed_result.get('success'):
-                print("✅ 查询执行成功"            else:
+                print("✅ 查询执行成功")
+            else:
                 print(f"❌ 查询执行失败: {processed_result.get('error')}")
 
             return processed_result

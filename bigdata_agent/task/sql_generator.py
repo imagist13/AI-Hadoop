@@ -3,6 +3,7 @@ SQL生成器
 根据分析结果生成SQL/HQL查询语句
 """
 
+import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 
@@ -14,6 +15,7 @@ class SQLGenerator:
 
     def __init__(self):
         """初始化SQL生成器"""
+        self.logger = logging.getLogger(__name__)
         self.supported_dialects = ['hive', 'spark', 'clickhouse', 'presto']
 
     def generate_sql(self, analyzed_query: AnalyzedQuery, dialect: str = 'hive') -> str:
@@ -27,7 +29,10 @@ class SQLGenerator:
         Returns:
             str: 生成的SQL查询语句
         """
+        self.logger.info(f"开始生成SQL (方言: {dialect})")
+
         if dialect not in self.supported_dialects:
+            self.logger.warning(f"不支持的方言 '{dialect}'，使用默认方言 'hive'")
             dialect = 'hive'
 
         # 构建SELECT子句
